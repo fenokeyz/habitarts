@@ -34,7 +34,9 @@ const markGoalComplete = async (goalId, userId) => {
   const result = await pool.query(
     `UPDATE goals
      SET is_completed = TRUE
-     WHERE id = $1 AND user_id = $2
+     WHERE id = $1 
+       AND user_id = $2
+       AND is_completed = FALSE
      RETURNING *`,
     [goalId, userId]
   );

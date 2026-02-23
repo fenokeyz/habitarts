@@ -3,6 +3,7 @@ const {
   getTodayGoalsByCouple,
   markGoalComplete,
 } = require("../models/goalModel");
+const { updateBalance, addTransaction } = require("../models/walletModel");
 
 const createGoalHandler = async (req, res) => {
   try {
@@ -66,7 +67,29 @@ const markGoalCompleteHandler = async (req, res) => {
 
     const updatedGoal = await markGoalComplete(id, req.user.id);
 
-    return res.json(updatedGoal);
+    if (!updatedGoal) {
+    return res.status(400).json({
+        error: "Goal already completed or invalid"
+    });
+    }
+
+    // Reward coins
+    const rewardAmount = 10;
+
+    await updateBalance(req.user.id, rewardAmount);
+
+    await addTransaction(
+    req.user.id,
+    rewardAmount,
+    "credit",
+    "Goal completed reward"
+    );
+
+    return res.json({
+    message: "Goal completed! Coins rewarded.",
+    reward: rewardAmount,
+    goal: updatedGoal
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to update goal" });
