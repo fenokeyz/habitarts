@@ -5,6 +5,7 @@ const pool = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const coupleRoutes = require("./routes/coupleRoutes");
+const goalRoutes = require("./routes/goalRoutes");
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/couples", coupleRoutes);
+app.use("/api/goals", goalRoutes);
 
 app.get("/", (req, res) => {
   res.send("Habitarts API Running 💖");
