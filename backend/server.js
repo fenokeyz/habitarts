@@ -6,6 +6,7 @@ const userRoutes = require("./routes/userRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const coupleRoutes = require("./routes/coupleRoutes");
 const goalRoutes = require("./routes/goalRoutes");
+const rewardRoutes = require("./routes/rewardRoutes");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/couples", coupleRoutes);
 app.use("/api/goals", goalRoutes);
+app.use("/api/rewards", rewardRoutes);
 
 app.get("/", (req, res) => {
   res.send("Habitarts API Running 💖");
