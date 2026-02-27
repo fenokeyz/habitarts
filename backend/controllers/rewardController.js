@@ -13,6 +13,9 @@ const {
   addTransaction
 } = require("../models/walletModel");
 
+const pool = require("../config/db");
+const { get } = require("../routes/rewardRoutes");
+
 const createRewardHandler = async (req, res) => {
   try {
     const { title, description, cost } = req.body;
@@ -86,16 +89,43 @@ const redeemRewardHandler = async (req, res) => {
     }
 
     // Deduct balance
-    await updateBalance(req.user.id, -reward.cost);
+    const client = await pool.connect();
 
-    await addTransaction(
-      req.user.id,
-      -reward.cost,
-      "debit",
-      `Redeemed reward: ${reward.title}`
-    );
+    try {
+      await client.query("BEGIN");
 
-    await createRedemption(reward.id, req.user.id);
+      await client.query(
+        `UPDATE wallets
+        SET balance = balance - $1
+        WHERE user_id = $2`,
+        [reward.cost, req.user.id]
+      );
+
+      await client.query(
+        `INSERT INTO transactions (user_id, amount, type, description)
+        VALUES ($1, $2, $3, $4)`,
+        [
+          req.user.id,
+          -reward.cost,
+          "debit",
+          `Redeemed reward: ${reward.title}`
+        ]
+      );
+
+      await client.query(
+        `INSERT INTO redemptions (reward_id, redeemed_by)
+        VALUES ($1, $2)`,
+        [reward.id, req.user.id]
+      );
+
+      await client.query("COMMIT");
+
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
 
     res.json({
       message: "Reward redeemed successfully",
@@ -105,6 +135,26 @@ const redeemRewardHandler = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to redeem reward" });
+  }
+};
+
+const getPendingRedemptionsHandler = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT r.id as reward_id,
+              r.title,
+              rd.id as redemption_id
+       FROM redemptions rd
+       JOIN rewards r ON rd.reward_id = r.id
+       WHERE r.created_by = $1
+         AND rd.is_fulfilled = FALSE`,
+      [req.user.id]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch redemptions" });
   }
 };
 
@@ -134,5 +184,6 @@ module.exports = {
   createRewardHandler,
   getRewardsHandler,
   redeemRewardHandler,
-  fulfillRewardHandler
+  fulfillRewardHandler,
+  getPendingRedemptionsHandler
 };
