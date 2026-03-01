@@ -20,9 +20,14 @@ const getWalletHandler = async (req, res) => {
 const getTransactionsHandler = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM transactions
-       WHERE user_id = $1
-       ORDER BY created_at DESC`,
+      `SELECT 
+        amount,
+        type,
+        created_at,
+        SUM(amount) OVER (ORDER BY created_at ASC) AS running_balance
+      FROM transactions
+      WHERE user_id = $1
+      ORDER BY created_at ASC`,
       [req.user.id]
     );
 

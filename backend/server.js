@@ -8,6 +8,7 @@ const coupleRoutes = require("./routes/coupleRoutes");
 const goalRoutes = require("./routes/goalRoutes");
 const rewardRoutes = require("./routes/rewardRoutes");
 const walletRoutes = require("./routes/walletRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 
 const app = express();
 
@@ -18,6 +19,8 @@ app.use("/api/couples", coupleRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/rewards", rewardRoutes);
 app.use("/api/wallet", walletRoutes);
+app.use("/api/profile", profileRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("Habitarts API Running 💖");

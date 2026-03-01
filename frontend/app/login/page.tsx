@@ -53,6 +53,15 @@ export default function LoginPage() {
         >
           Login
         </button>
+        <p className="text-sm text-gray-500 mt-4 text-center">
+          Don’t have an account?{" "}
+          <span
+            className="text-pink-500 cursor-pointer"
+            onClick={() => router.push("/register")}
+          >
+            Register
+          </span>
+        </p>
       </div>
     </div>
   );

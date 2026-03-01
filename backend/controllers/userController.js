@@ -12,6 +12,11 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
 
+
+    if (!email.includes("@") || !email.includes(".")) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await createUser(name, email, hashedPassword);
