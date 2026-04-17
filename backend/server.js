@@ -9,6 +9,8 @@ const goalRoutes = require("./routes/goalRoutes");
 const rewardRoutes = require("./routes/rewardRoutes");
 const walletRoutes = require("./routes/walletRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const therapistRoutes = require("./routes/therapistRoutes");
+
 
 const app = express();
 
@@ -20,6 +22,7 @@ app.use("/api/goals", goalRoutes);
 app.use("/api/rewards", rewardRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/therapist", therapistRoutes);
 
 
 app.get("/", (req, res) => {

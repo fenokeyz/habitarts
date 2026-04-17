@@ -8,6 +8,7 @@ export default function MarketplaceSection({
   setNewRewardCost,
   createReward,
   redeemReward,
+  hasCouple,
 }: any) {
   return (
     <div className="bg-white p-6 rounded-2xl shadow-md">
@@ -28,11 +29,15 @@ export default function MarketplaceSection({
           className="w-20 border p-2 rounded-lg text-black"
           placeholder="Cost"
         />
-        <button
-          onClick={createReward}
-          className="bg-purple-400 text-white px-4 rounded-lg"
+       <button
+        onClick={createReward}
+        className={`px-4 py-2 rounded-lg text-white transition ${
+            hasCouple
+            ? "bg-purple-400 hover:bg-purple-500 cursor-pointer"
+            : "bg-gray-400 cursor-not-allowed"
+        }`}
         >
-          Add
+        Add
         </button>
       </div>
 
@@ -47,7 +52,7 @@ export default function MarketplaceSection({
 
           <button
             onClick={() => redeemReward(reward.id)}
-            className="text-sm bg-blue-400 text-white px-2 py-1 rounded-lg"
+            className="text-sm bg-blue-400 hover:bg-blue-500 transition cursor-pointertext-white px-2 py-1 rounded-lg"
           >
             Redeem
           </button>

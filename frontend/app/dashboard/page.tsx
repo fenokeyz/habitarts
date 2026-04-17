@@ -3,10 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import WalletCard from "@/components/WalletCard";
-import GoalsSection from "@/components/GoalsSection";
-import RedemptionsSection from "@/components/RedemptionsSection";
-import MarketplaceSection from "@/components/MarketplaceSection";
-import TransactionChart from "@/components/TransactionChart";
 import { useToast } from "@/components/ToastProvider";
 import AppLayout from "@/components/AppLayout";
 
@@ -131,10 +127,14 @@ export default function Dashboard() {
 
   const data = await res.json();
 
-  if (!data.error) {
-    setGoals([...goals, data]);
-    setNewGoal("");
+  if (!res.ok) {
+    addToast(data.error || "Failed to create goal");
+    return;
   }
+
+  setGoals([...goals, data]);
+  setNewGoal("");
+  addToast("Goal created 💖");
 };
 
 const completeGoal = async (id: number) => {
@@ -209,14 +209,15 @@ const createReward = async () => {
 
   const data = await res.json();
 
-  if (!data.error) {
-    setRewards([data, ...rewards]);
-    setNewRewardTitle("");
-    setNewRewardCost("");
-    addToast("Reward created 💝");
-  } else {
-    alert(data.error);
+  if (!res.ok) {
+    addToast(data.error || "Failed to create reward");
+    return;
   }
+
+  setRewards([data, ...rewards]);
+  setNewRewardTitle("");
+  setNewRewardCost("");
+  addToast("Reward created 💝");
 };
 
 const redeemReward = async (id: number) => {

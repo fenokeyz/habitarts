@@ -1,0 +1,41 @@
+const pool = require("../config/db");
+
+const saveMessage = async (coupleId, userId, role, message) => {
+  const result = await pool.query(
+    `INSERT INTO therapist_messages (couple_id, user_id, role, message)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [coupleId, userId, role, message]
+  );
+
+  return result.rows[0];
+};
+
+const getMessages = async (coupleId, userId) => {
+  let result;
+
+  if (coupleId) {
+    result = await pool.query(
+      `SELECT * FROM therapist_messages
+       WHERE couple_id = $1
+       ORDER BY created_at ASC
+       LIMIT 20`,
+      [coupleId]
+    );
+  } else {
+    result = await pool.query(
+      `SELECT * FROM therapist_messages
+       WHERE user_id = $1 AND couple_id IS NULL
+       ORDER BY created_at ASC
+       LIMIT 20`,
+      [userId]
+    );
+  }
+
+  return result.rows;
+};
+
+module.exports = {
+  saveMessage,
+  getMessages,
+};

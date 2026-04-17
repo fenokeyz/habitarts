@@ -21,10 +21,10 @@ export default function GoalsSection({
           placeholder="Add a goal..."
         />
         <button
-          onClick={addGoal}
-          className="bg-pink-400 text-white px-4 rounded-lg"
+        onClick={addGoal}
+        className="bg-pink-400 hover:bg-pink-500 transition cursor-pointer text-white px-4 rounded-lg"
         >
-          Add
+        Add
         </button>
       </div>
 

@@ -17,8 +17,8 @@ export default function AppLayout({
     { name: "Goals", path: "/goals" },
     { name: "Marketplace", path: "/marketplace" },
     { name: "Redemptions", path: "/redemptions" },
-    { name: "Chat", path: "/chat" },
     { name: "Profile", path: "/profile" },
+    { name: "Therapist", path: "/therapist" },
   ];
 
   return (

@@ -25,7 +25,7 @@ export default function RedemptionsSection({
 
           <button
             onClick={() => fulfillReward(item.reward_id)}
-            className="text-sm bg-pink-400 text-white px-2 py-1 rounded-lg"
+            className="text-sm bg-pink-400 text-white hover:bg-pink-500 transition cursor-pointer px-2 py-1 rounded-lg"
           >
             Mark Fulfilled
           </button>

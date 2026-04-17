@@ -14,10 +14,14 @@ const createReward = async (title, description, cost, coupleId, userId) => {
 const getRewardsByCouple = async (coupleId) => {
   const result = await pool.query(
     `SELECT r.*
-    FROM rewards r
-    LEFT JOIN redemptions rd ON r.id = rd.reward_id
-    WHERE r.couple_id = $1
-      AND rd.id IS NULL`,
+     FROM rewards r
+     WHERE r.couple_id = $1
+     AND NOT EXISTS (
+        SELECT 1
+        FROM redemptions rd
+        WHERE rd.reward_id = r.id
+     )
+     ORDER BY r.created_at DESC`,
     [coupleId]
   );
 

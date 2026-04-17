@@ -13,6 +13,8 @@ const {
   addTransaction
 } = require("../models/walletModel");
 
+const { getUserById } = require("../models/coupleModel");
+
 const pool = require("../config/db");
 const { get } = require("../routes/rewardRoutes");
 
@@ -24,11 +26,20 @@ const createRewardHandler = async (req, res) => {
       return res.status(400).json({ error: "Title and cost are required" });
     }
 
+    const { getUserById } = require("../models/coupleModel");
+
+    const user = await getUserById(req.user.id);
+    const coupleId = user.couple_id;
+
+    if (!coupleId) {
+      return res.status(400).json({ error: "Not in a couple" });
+    }
+
     const reward = await createReward(
       title,
       description,
       cost,
-      req.user.couple_id,
+      coupleId,
       req.user.id
     );
 
@@ -41,7 +52,14 @@ const createRewardHandler = async (req, res) => {
 
 const getRewardsHandler = async (req, res) => {
   try {
-    const rewards = await getRewardsByCouple(req.user.couple_id);
+    const user = await getUserById(req.user.id);
+    const coupleId = user.couple_id;
+
+    if (!coupleId) {
+      return res.json([]);
+    }
+
+    const rewards = await getRewardsByCouple(coupleId);
     res.json(rewards);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch rewards" });
@@ -58,10 +76,17 @@ const redeemRewardHandler = async (req, res) => {
     return res.status(404).json({ error: "Reward not found" });
     }
 
-    if (reward.couple_id !== req.user.couple_id) {
-    return res.status(403).json({
+    const user = await getUserById(req.user.id);
+    const coupleId = user.couple_id;
+
+    if (!coupleId) {
+      return res.status(400).json({ error: "Not in a couple" });
+    }
+
+    if (reward.couple_id !== coupleId) {
+      return res.status(403).json({
         error: "You are not allowed to access this reward"
-    });
+      });
     }
 
     if (reward.created_by === req.user.id) {

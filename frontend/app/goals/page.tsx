@@ -28,30 +28,34 @@ export default function GoalsPage() {
       });
   }, []);
 
-  const addGoal = async () => {
+    const addGoal = async () => {
+    if (!newGoal.trim()) return;
+
     const token = localStorage.getItem("token");
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/goals/create`,
-      {
+        `${process.env.NEXT_PUBLIC_API_URL}/api/goals/create`,
+        {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ title: newGoal }),
-      }
+        }
     );
 
     const data = await res.json();
 
-    if (!data.error) {
-      setGoals([...goals, data]);
-      setNewGoal("");
-      addToast("Goal added 💕");
+    if (!res.ok) {
+        addToast(data.error || "Failed to add goal");
+        return;
     }
-  };
 
+    setGoals([...goals, data]);
+    setNewGoal("");
+    addToast("Goal added 💕");
+    };
   const completeGoal = async (id: number) => {
     const token = localStorage.getItem("token");
 

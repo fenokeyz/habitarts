@@ -4,6 +4,7 @@ const {
   markGoalComplete,
 } = require("../models/goalModel");
 const { updateBalance, addTransaction } = require("../models/walletModel");
+const { getUserById } = require("../models/coupleModel");
 
 const createGoalHandler = async (req, res) => {
   try {
@@ -15,10 +16,15 @@ const createGoalHandler = async (req, res) => {
 
     const today = new Date().toISOString().split("T")[0];
 
+    const { getUserById } = require("../models/coupleModel");
+
+    const user = await getUserById(req.user.id);
+    const coupleId = user.couple_id;
+
     const goal = await createGoal(
       title,
       req.user.id,
-      req.user.couple_id || null,
+      coupleId || null,
       today
     );
 
@@ -33,8 +39,15 @@ const getTodayGoalsHandler = async (req, res) => {
   try {
     const today = new Date().toISOString().split("T")[0];
 
+    const user = await getUserById(req.user.id);
+    const coupleId = user.couple_id;
+
+    if (!coupleId) {
+      return res.json([]); // no couple = no goals
+    }
+
     const goals = await getTodayGoalsByCouple(
-      req.user.couple_id,
+      coupleId,
       today
     );
 
