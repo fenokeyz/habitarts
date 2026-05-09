@@ -16,8 +16,6 @@ const {
 const { getUserById } = require("../models/coupleModel");
 
 const pool = require("../config/db");
-const { get } = require("../routes/rewardRoutes");
-
 const createRewardHandler = async (req, res) => {
   try {
     const { title, description, cost } = req.body;
