@@ -1,11 +1,15 @@
 const { Pool } = require("pg");
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const pool = new Pool({
-  user: "navaneethsuresh",   // your Mac username
-  host: "localhost",
-  database: "habitarts",
-  password: "",              // leave empty if you didn't set one
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+
+  ssl: isProduction
+    ? {
+        rejectUnauthorized: false,
+      }
+    : false,
 });
 
 module.exports = pool;

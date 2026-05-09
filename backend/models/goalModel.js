@@ -11,13 +11,30 @@ const createGoal = async (title, userId, coupleId, goalDate) => {
   return result.rows[0];
 };
 
-const getTodayGoalsByCouple = async (coupleId, today) => {
-  const result = await pool.query(
-    `SELECT * FROM goals
-     WHERE couple_id = $1 AND goal_date = $2
-     ORDER BY created_at ASC`,
-    [coupleId, today]
-  );
+const getTodayGoalsByCouple = async (coupleId,userId,today) => {
+
+  let result;
+
+  if (coupleId) {
+    result = await pool.query(
+      `SELECT *
+       FROM goals
+       WHERE couple_id = $1
+         AND goal_date = $2
+       ORDER BY created_at ASC`,
+      [coupleId, today]
+    );
+  } else {
+    result = await pool.query(
+      `SELECT *
+       FROM goals
+       WHERE user_id = $1
+         AND couple_id IS NULL
+         AND goal_date = $2
+       ORDER BY created_at ASC`,
+      [userId, today]
+    );
+  }
 
   return result.rows;
 };

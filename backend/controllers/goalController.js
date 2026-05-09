@@ -42,12 +42,9 @@ const getTodayGoalsHandler = async (req, res) => {
     const user = await getUserById(req.user.id);
     const coupleId = user.couple_id;
 
-    if (!coupleId) {
-      return res.json([]); // no couple = no goals
-    }
-
     const goals = await getTodayGoalsByCouple(
       coupleId,
+      req.user.id,
       today
     );
 
