@@ -16,16 +16,20 @@ const getMessages = async (coupleId, userId) => {
 
   if (coupleId) {
     result = await pool.query(
-      `SELECT * FROM therapist_messages
-       WHERE couple_id = $1
+      `SELECT m.*, u.name
+       FROM therapist_messages m
+       LEFT JOIN users u ON m.user_id = u.id
+       WHERE m.couple_id = $1
        ORDER BY created_at ASC
        LIMIT 20`,
       [coupleId]
     );
   } else {
     result = await pool.query(
-      `SELECT * FROM therapist_messages
-       WHERE user_id = $1 AND couple_id IS NULL
+      `SELECT m.*, u.name
+       FROM therapist_messages m
+       LEFT JOIN users u ON m.user_id = u.id
+       WHERE m.user_id = $1 AND m.couple_id IS NULL
        ORDER BY created_at ASC
        LIMIT 20`,
       [userId]

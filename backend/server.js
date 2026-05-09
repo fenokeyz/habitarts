@@ -10,9 +10,11 @@ const rewardRoutes = require("./routes/rewardRoutes");
 const walletRoutes = require("./routes/walletRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const therapistRoutes = require("./routes/therapistRoutes");
+const { initSocket } = require("./socket");
 
 
 const app = express();
+
 
 app.use(cors());
 app.use(express.json());
@@ -46,6 +48,10 @@ app.get("/api/protected", protect, (req, res) => {
 
 const PORT = process.env.PORT || 7777;
 
-app.listen(PORT, () => {
+const http = require("http");
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

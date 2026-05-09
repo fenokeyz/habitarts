@@ -1,7 +1,7 @@
 const pool = require("../config/db");
 const { saveMessage, getMessages } = require("../models/therapistModel");
 const OpenAI = require("openai").default;
-
+const { getIO } = require("../socket");
 
 const therapistChat = async (req, res) => {
   try {
@@ -14,7 +14,7 @@ const therapistChat = async (req, res) => {
 
     // 🔥 Get couple_id from DB (IMPORTANT)
     const userResult = await pool.query(
-      "SELECT couple_id FROM users WHERE id = $1",
+      "SELECT couple_id, name FROM users WHERE id = $1",
       [userId]
     );
 
@@ -23,6 +23,16 @@ const therapistChat = async (req, res) => {
     // Save user message
     await saveMessage(coupleId, userId, "user", message);
 
+    getIO().to(`couple_${coupleId || userId}`).emit(
+      "new_message",
+      {
+        role: "user",
+        message,
+        user_id: userId,
+        name: userResult.rows[0]?.name || "User",
+      }
+    );
+
     // Get previous messages (context)
     const history = await getMessages(coupleId, userId);
 
@@ -30,19 +40,64 @@ const therapistChat = async (req, res) => {
     const systemPrompt = {
       role: "system",
       content: `
-You are a neutral relationship therapist.
+    You are a calm, neutral relationship therapist.
 
-Rules:
-- Do NOT take sides early
-- Do NOT assume intent
-- Ask clarifying questions if context is missing
-- Encourage both partners to share their perspective
-- If only one side is speaking, explicitly say more context is needed
-- Only give conclusions after hearing both sides
-- Be calm, empathetic, and concise
-      `,
+    STRICT RULES:
+    - Do NOT take sides.
+    - Do NOT assume intentions.
+    - If only one person is speaking, explicitly say that you need the partner’s perspective.
+    - Ask clarifying questions before giving advice.
+    - Encourage both partners to express feelings calmly.
+    - Do NOT give conclusions unless both perspectives are clearly presented.
+    - If conflict appears one-sided, say that more context is needed.
+
+    STYLE:
+    - Warm, empathetic, concise
+    - No long paragraphs
+    - No moral lecturing
+    - Focus on communication, not blame
+    `,
     };
 
+    const uniqueUsers = new Set(history.map(m => m.user_id));
+
+    let contextHint = "";
+
+    if (coupleId && uniqueUsers.size < 2) {
+      contextHint = `
+    Note: Only one partner has spoken so far.
+    Encourage hearing the other partner before forming conclusions.
+    `;
+    }
+
+    // 🔹 Build participant identity context
+    const participantsMap = new Map();
+
+    history
+      .filter(m => m.role === "user")
+      .forEach(m => {
+        if (!participantsMap.has(m.user_id)) {
+          participantsMap.set(m.user_id, m.name || "User");
+        }
+      });
+
+    const participants = Array.from(participantsMap.values());
+
+    const identityPrompt = {
+      role: "system",
+      content: `
+      Participants in this conversation:
+      ${participants.map((name, i) => `${i + 1}. ${name}`).join("\n")}
+
+      Each message will be prefixed with the speaker's name in this format:
+      [User: Name]
+
+      You MUST:
+      - Track who is speaking based on this prefix
+      - Never guess identities
+      - If unsure, explicitly ask for clarification
+      `,
+    };
 
     // Limit history to last 15 messages (prevent token overflow)
     const limitedHistory = history.slice(-15);
@@ -50,10 +105,15 @@ Rules:
     // Convert DB messages → OpenAI format
     const finalMessages = [
       systemPrompt,
-      ...limitedHistory.map(m => ({
-        role: m.role,
-        content: m.message,
-      })),
+      identityPrompt,
+      { role: "system", content: contextHint },
+        ...limitedHistory.map(m => ({
+          role: m.role,
+          content:
+            m.role === "assistant"
+              ? m.message
+              : `[User: ${m.name || "User"}] ${m.message}`,
+        })),
     ];
 
     const openai = new OpenAI({
@@ -70,6 +130,14 @@ Rules:
 
     // Save AI response
     await saveMessage(coupleId, userId, "assistant", reply);
+
+    getIO().to(`couple_${coupleId || userId}`).emit(
+      "new_message",
+      {
+        role: "assistant",
+        message: reply,
+      }
+    );
 
     res.json({ reply });
 
