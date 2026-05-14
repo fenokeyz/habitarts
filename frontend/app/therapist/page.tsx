@@ -61,7 +61,19 @@ export default function TherapistPage() {
       });
 
     socketRef.current.on("new_message", (msg: any) => {
-      setMessages(prev => [...prev, msg]);
+      setMessages(prev => {
+        // prevent duplicate own messages
+        const exists = prev.some(
+          (m) =>
+            m.message === msg.message &&
+            m.role === msg.role
+        );
+
+        if (exists) return prev;
+
+        return [...prev, msg];
+      });
+
       setTimeout(scrollToBottom, 100);
     });
 
@@ -155,7 +167,9 @@ export default function TherapistPage() {
               <div className={`text-xs mb-1 ${msg.role === "assistant" ? "text-gray-400" : "text-white/80"}`}>
                 {msg.role === "assistant" ? "Therapist" : msg.name || "You"}
               </div>
-              {msg.message}
+              {msg.role === "assistant"
+                ? msg.message.replace(/^\[Therapist:\s*Therapist\]\s*/i, "")
+                : msg.message}
             </div>
           ))}
 
